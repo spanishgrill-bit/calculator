@@ -1,0 +1,16 @@
+{
+  "name": "auto-deal-iq",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AUTO DEAL IQ - universal vehicle deal calculator, optimizer, and decision engine",
+  "scripts": {
+    "test": "node test/calculationEngine.test.js && node test/dbResolvers.test.js && node test/taxResolver.test.js",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

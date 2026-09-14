@@ -1,0 +1,26 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+
+# All calculator API calls go to /api/* which maps to Netlify Functions.
+# The frontend (public/app.js) only ever calls these relative paths, so it
+# works unchanged whether deployed at the site root or as a subdomain.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
+# Proactively refreshes cached tax rates once a month for every ZIP used in
+# a deal recently, so live requests almost always hit the Supabase cache
+# instead of depending on the third-party provider being up at that moment.
+[[functions.schedule]]
+  name = "scheduled-tax-refresh"
+  schedule = "0 6 1 * *"

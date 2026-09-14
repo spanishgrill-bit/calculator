@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>AUTO DEAL IQ — Deal Calculator</title>
+  <meta name="description" content="Turn the numbers into the smartest deal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" id="dealerName">Dealership Name</span>
+        <span class="brand-product">AUTO DEAL IQ<sup>&trade;</sup></span>
+      </div>
+      <div class="mode-toggle" role="group" aria-label="View mode">
+        <button type="button" class="mode-btn is-active" data-mode="customer">Customer</button>
+        <button type="button" class="mode-btn" data-mode="dealer">Dealer</button>
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <!-- ===================== INPUT COLUMN ===================== -->
+      <section class="panel inputs" aria-label="Deal inputs">
+
+        <div class="field-group">
+          <h2 class="group-title">Vehicle</h2>
+
+          <div class="grid-2">
+            <label class="field">
+              <span>Make</span>
+              <select id="selMake"><option value="">Select make…</option></select>
+            </label>
+            <label class="field">
+              <span>Model</span>
+              <select id="selModel" disabled><option value="">Select model…</option></select>
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="field">
+              <span>Year</span>
+              <select id="selYear" disabled><option value="">Select year…</option></select>
+            </label>
+            <label class="field">
+              <span>Trim</span>
+              <select id="selTrim" disabled><option value="">Select trim…</option></select>
+            </label>
+          </div>
+
+          <div id="notListedNotice" class="hint hidden">
+            Vehicle not in the catalog yet? <button type="button" class="link-btn" id="btnManualVehicle">Enter it manually</button>
+          </div>
+
+          <div id="manualVehicleFields" class="grid-2 hidden">
+            <label class="field"><span>Make (typed)</span><input id="manMake" type="text" /></label>
+            <label class="field"><span>Model (typed)</span><input id="manModel" type="text" /></label>
+            <label class="field"><span>Year</span><input id="manYear" type="number" placeholder="2026" /></label>
+            <label class="field"><span>Trim</span><input id="manTrim" type="text" /></label>
+          </div>
+
+          <div class="grid-2">
+            <label class="field">
+              <span>Condition</span>
+              <select id="selCondition">
+                <option value="new">New</option>
+                <option value="used">Used</option>
+                <option value="cpo">Certified Pre-Owned</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Selling price</span>
+              <input id="inSellingPrice" type="number" inputmode="decimal" placeholder="$0" />
+              <span class="field-note" id="msrpNote"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="group-title">Deal location</h2>
+          <div class="grid-2">
+            <label class="field">
+              <span>Dealership ZIP</span>
+              <input id="inDealerZip" type="text" inputmode="numeric" maxlength="5" placeholder="07070" />
+            </label>
+            <label class="field">
+              <span>Customer registration ZIP</span>
+              <input id="inCustomerZip" type="text" inputmode="numeric" maxlength="5" placeholder="10001" />
+            </label>
+          </div>
+          <div class="hint" id="taxLocationHint"></div>
+          <div id="taxOverrideFields" class="grid-2 hidden">
+            <label class="field">
+              <span>Manual tax rate (%) — automatic lookup unavailable</span>
+              <input id="inTaxOverride" type="number" step="0.001" placeholder="e.g. 6.625" />
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="group-title">Trade</h2>
+          <div class="segmented" role="group" aria-label="Do you have a trade?">
+            <button type="button" class="segment is-active" data-trade="no">No trade</button>
+            <button type="button" class="segment" data-trade="yes">I have a trade</button>
+          </div>
+          <div id="tradeFields" class="grid-2 hidden">
+            <label class="field"><span>Trade value</span><input id="inTradeValue" type="number" placeholder="$0" /></label>
+            <label class="field"><span>Trade payoff</span><input id="inTradePayoff" type="number" placeholder="$0" /></label>
+          </div>
+          <div class="hint" id="equityHint"></div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="group-title">Cash &amp; financing</h2>
+          <div class="grid-2">
+            <label class="field"><span>Down payment</span><input id="inDownPayment" type="number" placeholder="$0" /></label>
+            <label class="field"><span>Cash available (optional)</span><input id="inCashAvailable" type="number" placeholder="$0" /></label>
+          </div>
+          <label class="field">
+            <span>Credit tier</span>
+            <select id="selCreditTier"><option value="">Select credit tier…</option></select>
+          </label>
+          <label class="field">
+            <span>Loan term</span>
+            <div class="segmented" role="group" aria-label="Loan term">
+              <button type="button" class="segment" data-term="48">48 mo</button>
+              <button type="button" class="segment is-active" data-term="60">60 mo</button>
+              <button type="button" class="segment" data-term="72">72 mo</button>
+              <button type="button" class="segment" data-term="84">84 mo</button>
+            </div>
+          </label>
+          <label class="field">
+            <span>Target monthly payment (optional)</span>
+            <input id="inTargetPayment" type="number" placeholder="$0" />
+          </label>
+        </div>
+
+        <div class="field-group">
+          <h2 class="group-title">Priority</h2>
+          <div class="segmented segmented-wrap" role="group" aria-label="Optimization priority">
+            <button type="button" class="segment" data-objective="lowest_payment">Lowest payment</button>
+            <button type="button" class="segment" data-objective="lowest_total_cost">Lowest total cost</button>
+            <button type="button" class="segment" data-objective="lowest_cash">Lowest cash required</button>
+            <button type="button" class="segment" data-objective="fastest_payoff">Fastest payoff</button>
+            <button type="button" class="segment is-active" data-objective="best_balance">Best overall balance</button>
+          </div>
+        </div>
+
+        <button type="button" id="btnCalculate" class="btn-primary">Calculate deal</button>
+        <div id="formErrors" class="error-box hidden"></div>
+      </section>
+
+      <!-- ===================== RESULTS COLUMN ===================== -->
+      <section class="panel results" aria-label="Deal results" id="resultsPanel">
+
+        <div class="results-empty" id="resultsEmpty">
+          <p>Fill in the deal on the left and select <strong>Calculate deal</strong> to see your estimated payment, tax, and the smartest ways to structure this deal.</p>
+        </div>
+
+        <div id="resultsContent" class="hidden">
+
+          <div class="readout">
+            <span class="readout-label">Estimated monthly payment</span>
+            <span class="readout-value" id="outMonthlyPayment">$0</span>
+            <div id="paymentGapBanner" class="gap-banner hidden"></div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat"><span>Amount financed</span><strong id="outAmountFinanced">—</strong></div>
+            <div class="stat"><span>Estimated APR</span><strong id="outApr">—</strong></div>
+            <div class="stat"><span>Term</span><strong id="outTerm">—</strong></div>
+            <div class="stat"><span>Total interest</span><strong id="outTotalInterest">—</strong></div>
+            <div class="stat"><span>Total payments</span><strong id="outTotalPayments">—</strong></div>
+            <div class="stat"><span>Cash required</span><strong id="outCashRequired">—</strong></div>
+          </div>
+
+          <div class="subsection">
+            <button type="button" class="link-btn" id="btnToggleTaxDetails">Tax details ▾</button>
+            <div id="taxDetails" class="details-box hidden"></div>
+          </div>
+
+          <h3 class="section-title">Your best options</h3>
+          <div id="scenarioList" class="scenario-grid"></div>
+
+          <div class="subsection">
+            <button type="button" class="btn-secondary" id="btnExplain">Explain my deal</button>
+            <div id="explainBox" class="details-box hidden"></div>
+          </div>
+
+          <div id="dealerBox" class="details-box hidden"></div>
+
+          <p class="disclaimer">Payment and APR are estimates until confirmed by the lender. Taxes, fees, incentives and rebates vary by location, vehicle, lender and transaction. Vehicle pricing and availability may change.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
