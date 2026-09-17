@@ -10,7 +10,7 @@
 // customer's registration ZIP, per §4.3.
 //
 // UPDATE THIS to Mario Toyota's real ZIP code before going live.
-const DEALERSHIP_ZIP = '00000'; // TODO: replace with the real dealership ZIP
+const DEALERSHIP_ZIP = '07075'; // Mario Toyota
 
 // All calls go through the /api/* redirect defined in netlify.toml, which
 // maps to /.netlify/functions/*. This means the frontend works identically
@@ -446,3 +446,4 @@ function hideError() {
 }
 
 init();
+
