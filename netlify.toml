@@ -21,6 +21,5 @@
 # Proactively refreshes cached tax rates once a month for every ZIP used in
 # a deal recently, so live requests almost always hit the Supabase cache
 # instead of depending on the third-party provider being up at that moment.
-[[functions.schedule]]
-  name = "scheduled-tax-refresh"
+[functions."scheduled-tax-refresh"]
   schedule = "0 6 1 * *"
