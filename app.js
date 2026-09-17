@@ -1,5 +1,17 @@
 'use strict';
 
+// ---------------------------------------------------------------------------
+// Dealership config
+// ---------------------------------------------------------------------------
+// The dealership's own ZIP is fixed per deployment (this calculator is
+// wired to one dealership at a time) rather than asked of every customer.
+// It's still sent to the backend for record-keeping on saved deals, but it
+// never drives the tax calculation — that's always based on the
+// customer's registration ZIP, per §4.3.
+//
+// UPDATE THIS to Mario Toyota's real ZIP code before going live.
+const DEALERSHIP_ZIP = '00000'; // TODO: replace with the real dealership ZIP
+
 // All calls go through the /api/* redirect defined in netlify.toml, which
 // maps to /.netlify/functions/*. This means the frontend works identically
 // whether it's deployed at a site root or as calculator.mariotoyota.com.
@@ -289,12 +301,11 @@ async function onCalculate() {
 
 function buildPayload() {
   const sellingPrice = Number($('inSellingPrice').value);
-  const dealershipZip = $('inDealerZip').value.trim();
   const customerRegistrationZip = $('inCustomerZip').value.trim();
   const creditTierId = $('selCreditTier').value;
 
-  if (!sellingPrice || !dealershipZip || !customerRegistrationZip || !creditTierId) {
-    showError('Please fill in vehicle price, both ZIP codes, and credit tier before calculating.');
+  if (!sellingPrice || !customerRegistrationZip || !creditTierId) {
+    showError('Please fill in vehicle price, the ZIP code, and credit tier before calculating.');
     return null;
   }
 
@@ -319,7 +330,7 @@ function buildPayload() {
   }
 
   return {
-    dealershipZip,
+    dealershipZip: DEALERSHIP_ZIP,
     customerRegistrationZip,
     vehicleSource,
     vehicleCondition: $('selCondition').value,
