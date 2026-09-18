@@ -48,6 +48,13 @@ with it.
 3. Paste in the entire contents of `db/001_init_schema.sql` and run it.
    This creates all 24 tables, enum types, and seeds a starter list of
    vehicle categories.
+3b. Then paste in `db/002_seed_reference_data.sql` and run it. This adds
+   the rows that MUST exist before any deal can be calculated: credit
+   tiers (so the dropdown isn't empty), a default lender + APR rules for
+   every tier/condition/term combination, one sample vehicle (Toyota Camry
+   2026, LE/SE) so there's something to test with end-to-end, and a sample
+   doc fee. Replace the sample vehicle with real inventory whenever
+   convenient — it's just there so a first test deal actually works.
 4. Go to **Project Settings → API** and copy:
    - `Project URL` → this is `SUPABASE_URL`
    - `service_role` key (NOT the `anon` key) → this is `SUPABASE_SERVICE_ROLE_KEY`
@@ -56,29 +63,74 @@ with it.
    variables, never in any file you upload to GitHub.
 
 ### Step 2 — Code (Netlify)
-The cleanest path is a Git repository, because it gives you automatic
-redeploys every time you make a change:
-1. Create a new (private) GitHub repository and push this `auto-deal-iq`
-   folder into it.
-2. In Netlify: **Add new site → Import an existing project → GitHub** →
-   select the repo.
-3. Netlify will detect `netlify.toml` automatically (build command: none
-   needed, publish directory: `public`, functions directory:
-   `netlify/functions`).
-4. Before the first deploy, go to **Site settings → Environment variables**
-   and add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (the same two
-   values from Step 1). If/when you register with a backup tax provider
-   that needs an API key, add it here too (e.g. `ZIP_TAX_BACKUP_KEY`) —
-   never in a file that gets committed to the repo.
-5. Deploy. Netlify gives you a temporary URL like
-   `random-name-123.netlify.app` — open it and run through a full test deal
-   before touching the real domain.
 
-If you'd rather not deal with GitHub yet, Netlify also supports dragging a
-built folder directly onto their dashboard for a one-off deploy — but you'd
-lose the "push to redeploy" convenience, and functions need the CLI to
-package correctly for a drag-and-drop deploy, so the Git route above is the
-one worth setting up even for a first test.
+You have two options here depending on whether you're comfortable with a
+terminal. Both end up in the same place.
+
+#### Option A — No terminal at all (click-only, via GitHub's website)
+
+1. **Unzip** `auto-deal-iq.zip` on your computer — double-click it like any
+   zip file. You should end up with a folder called `auto-deal-iq`
+   containing `db/`, `netlify/`, `public/`, `src/`, `test/`, `netlify.toml`,
+   `package.json`, and `README-integration.md`.
+2. Go to **github.com** and sign in (or create a free account if you don't
+   have one).
+3. Click the **+** icon top-right → **New repository**. Name it something
+   like `auto-deal-iq`, keep it **Private**, and click **Create repository**.
+4. On the new repo's page, click the link that says **"uploading an
+   existing file"** (it's in the small text block on the empty-repo page).
+5. Open the unzipped `auto-deal-iq` folder in your file explorer, **select
+   everything inside it** (all the files and subfolders — `db`, `netlify`,
+   `public`, `src`, `test`, `netlify.toml`, `package.json`, etc.), and
+   **drag them all into the browser** onto GitHub's upload area at once.
+   Important: drag the *contents* of the folder, not the `.zip` file
+   itself and not the outer `auto-deal-iq` folder — GitHub needs to see
+   `netlify.toml` sitting at the top level of the repo, not nested one
+   folder deeper. (This is almost certainly why the earlier upload
+   "failed" — a `.zip` file dragged onto GitHub just uploads as one opaque
+   zip file sitting in the repo, not as a proper project structure.)
+6. Scroll down, leave the default commit message, click **Commit
+   changes**. Wait for the page to finish uploading — for a project this
+   size it should take well under a minute.
+7. Now go to **app.netlify.com** → **Add new site → Import an existing
+   project → Deploy with GitHub** → authorize Netlify to see your GitHub
+   account if asked → select the `auto-deal-iq` repository.
+8. Netlify auto-detects everything from `netlify.toml` (publish folder
+   `public`, functions folder `netlify/functions`) — you don't need to
+   type any build settings. Click **Deploy**.
+9. Before (or right after) that first deploy finishes, go to **Site
+   settings → Environment variables** in Netlify and add:
+   - `SUPABASE_URL` → your Project URL from Supabase
+   - `SUPABASE_SERVICE_ROLE_KEY` → your service_role key from Supabase
+
+   Then trigger a redeploy (**Deploys tab → Trigger deploy → Deploy site**)
+   so the functions pick up those values.
+10. Netlify gives you a live URL like `random-name-123.netlify.app` —
+    open it and run through a full test deal before touching the real
+    domain.
+
+From here on, updating the site is also click-only: whenever there's a new
+version of the code, go back to the repo's page on github.com, click **Add
+file → Upload files**, drag in the changed files, commit — Netlify
+redeploys automatically within a minute or two.
+
+#### Option B — Netlify CLI (a bit faster once set up, needs a terminal)
+
+1. Install Node.js from nodejs.org if you don't have it.
+2. Unzip the project, open a terminal in that folder, then:
+   ```
+   npm install -g netlify-cli
+   npm install
+   netlify login
+   netlify init
+   netlify env:set SUPABASE_URL "https://YOUR-PROJECT.supabase.co"
+   netlify env:set SUPABASE_SERVICE_ROLE_KEY "your-service-role-key"
+   netlify deploy --prod
+   ```
+   When `netlify init` asks about connecting a Git repository, choose
+   **"No"** — this keeps it CLI-managed with no GitHub involved at all.
+   To update later, just re-run `netlify deploy --prod` from the same
+   folder.
 
 ---
 
@@ -134,10 +186,18 @@ live with real customer data:
    dealer-only access needs Supabase Auth (or similar) wired into the
    frontend and functions before Dealer Mode should be trusted with
    anything sensitive.
-2. **The vehicle/tax/APR/fee tables are empty except a starter category
-   list** — nothing will calculate until you (or I) populate at least one
-   manufacturer/model/trim/price, a lender + credit tiers + APR rules, via
-   Supabase's Table Editor (there's no admin UI yet).
+2. **Set the dealership ZIP.** The app only asks the customer for their
+   own (registration) ZIP — the dealership's ZIP is a single constant in
+   `public/app.js` (`DEALERSHIP_ZIP`, near the top of the file), since this
+   calculator is wired to one dealership at a time. It's currently a
+   placeholder (`'00000'`) — update it to the real ZIP before going live.
+   It's used for record-keeping on saved deals only; it never affects the
+   tax calculation, which always uses the customer's ZIP.
+3. **Real vehicle inventory.** `db/002_seed_reference_data.sql` seeds one
+   sample vehicle (a 2026 Camry) so there's something to test with —
+   replace/expand this with the dealership's real inventory via Supabase's
+   Table Editor whenever convenient. There's no admin UI for this yet
+   (§36 in the original spec).
 
 ~~3. Free tax API reliability~~ — **fixed.** See "Tax rate reliability" below
 for what changed and what's still worth deciding before a commercial launch.

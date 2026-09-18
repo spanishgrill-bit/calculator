@@ -446,4 +446,3 @@ function hideError() {
 }
 
 init();
-
