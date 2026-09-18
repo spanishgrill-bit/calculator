@@ -23,3 +23,4 @@
 # instead of depending on the third-party provider being up at that moment.
 [functions."scheduled-tax-refresh"]
   schedule = "0 6 1 * *"
+
